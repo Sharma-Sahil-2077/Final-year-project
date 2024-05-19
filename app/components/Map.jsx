@@ -19,8 +19,15 @@ const Map = () => {
   const intervalRef = useRef(null);
   const mapContainerRef = useRef(null); // Ref for map container
   const [confidence, setConfidence] = useState(0.1);
-  const [image, setPng] = useState(null);
+  const [pngimage, setPng] = useState(null);
   const [preds, setPreds] = useState(null);
+  const [showPreviewCanvas, setShowPreviewCanvas] = useState(false);
+  const canvasRef = useRef(null);
+  const [previewCanvas , setPreviewCanvas ] = useState(null);
+  const [modifiedImagex, setModifiedImagex] = useState(null)
+  const clickCounter = useRef(0);
+  const [stop ,setStop] = useState(false);
+  const [path, setPath] = useState(false);
 
   const mapStyles = [
     { label: 'Satellite', value: 'satellite-v9', image: '/sat.png' },
@@ -142,7 +149,7 @@ const Map = () => {
         throw new Error('Failed to fetch static map image');
       }
       const imageBlob = await response.blob();
-
+      
       // Convert image to PNG
       const fileReader = new FileReader();
       fileReader.onload = () => {
@@ -152,14 +159,15 @@ const Map = () => {
         const ctx = canvas.getContext('2d');
         const img = new Image();
         img.onload = () => {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          const pngimage = canvas.toDataURL('image/png');
-          console.log('iiiiiiiiiiiiiiiiii', pngimage)
+          const scaledWidth = 1000;
+          const scaledHeight = 600;
+          canvas.width = scaledWidth;
+          canvas.height = scaledHeight;
+          ctx.drawImage(img, 0, 0,scaledWidth, scaledHeight);
+          const pimage = canvas.toDataURL('image/png');
           // Save both original image and PNG in state variables
           setScreenshot(imageUrl);
-          setPng(pngimage);
+          setPng(pimage);
           setShowPreview(true);
         };
         img.src = imageUrl;
@@ -218,9 +226,9 @@ const Map = () => {
 
   const handlePredict = async () => {
     try {
-
+      setModifiedImagex(null);
       setImageData(null);
-      const byteString = atob(image.split(",")[1]);
+      const byteString = atob(pngimage.split(",")[1]);
       const arrayBuffer = new ArrayBuffer(byteString.length);
       const uint8Array = new Uint8Array(arrayBuffer);
       for (let i = 0; i < byteString.length; i++) {
@@ -283,11 +291,126 @@ const Map = () => {
     await handlePredict();
 
   };
+  const handleClick = (event) => {
+    console.log("Click event occurred on the canvas");
+    // Get click coordinates relative to the canvas
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    console.log("Clicked coordinates (x, y):", x, y);
+
+    // Draw circle at clicked coordinates
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(x, y, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    console.log("Circle drawn at clicked coordinates");
+
+    // Save the modified canvas as an image
+    const modifiedImage = canvas.toDataURL('image/png');
+    console.log("Modified image data URL:", modifiedImage);
+    setModifiedImageURL(modifiedImage);
+};
 
 
 
+const handleBrushing = () => {
+  console.log("Function started");
+
+  if (!canvasRef.current) {
+      const canvas = document.createElement('canvas');
+      canvasRef.current = canvas;
+
+      console.log("Canvas element created:", canvas);
+
+      const ctx = canvas.getContext('2d');
+      console.log("Canvas context:", ctx);
+
+      // Style the canvas to ensure visibility and interactivity
+      canvas.style.position = 'absolute';
+      canvas.style.top = '7.7%';
+      canvas.style.left = '5.4%';
+      canvas.style.zIndex = '30';
+      
+      canvas.style.border = '1px solid black';
+      canvas.style.cursor = 'pointer';  // Change cursor to pointer
+
+      // Append the canvas to the body (or any other container)
+      document.body.appendChild(canvas);
+      console.log("Canvas appended to DOM");
+
+      // Add hover effect to change cursor style
+      canvas.addEventListener('mouseover', () => {
+          canvas.style.cursor = 'pointer';
+      });
+
+      canvas.addEventListener('mouseout', () => {
+          canvas.style.cursor = 'default';
+      });
+
+      const image = new Image();
+
+      // Load the image onto the canvas
+      image.onload = () => {
+          console.log("Image loaded");
+          canvas.width = image.width;
+          canvas.height = image.height;
+          ctx.drawImage(image, 0, 0);
+          console.log(canvas.width, canvas.height);
+
+          // Add click event listener to the canvas
+          const handleClick = (event) => {
+              console.log('Click event listener triggered');
+
+              // Get click coordinates relative to the canvas
+              const rect = canvas.getBoundingClientRect();
+              const x = event.clientX - rect.left;
+              const y = event.clientY - rect.top;
+
+              // Draw circle at clicked coordinates
+              ctx.fillStyle = 'red';
+              ctx.beginPath();
+              ctx.arc(x, y, 10, 0, Math.PI * 2);
+              ctx.fill();
+              console.log(`Circle drawn at (${x}, ${y})`);
+
+              // Increment click counter
+              clickCounter.current += 1;
+
+              // Save the modified canvas as an image
+              const modifiedImage = canvas.toDataURL('image/png');
+              setModifiedImagex(modifiedImage);
+              console.log('Modified image URL set');
+
+              // Remove the event listener after 2 clicks
+              if (clickCounter.current >= 2) {
+                  canvas.style.display = 'none';
+                  setStop(!stop)
+                  canvas.removeEventListener('click', handleClick);
+                  console.log('Click event listener removed');
+              }
+          };
+
+          canvas.addEventListener('click', handleClick);
+          console.log('Click event listener added');
+      };
+
+      // Set the source of the image
+      image.src = pngimage;
+      console.log('Source set');
+  } else {
+      console.log('Canvas already exists, skipping creation');
+  }
+};
+   
 
 
+
+      
+    
+  
 
 
 
@@ -309,11 +432,14 @@ const Map = () => {
   };
 
   const handleClosePreview = () => {
+    setStop(!stop);
+    canvasRef.current = null;
     setShowPreview(false);
     setResultImage(null);
     setImageData(null);
     setScreenshot(null); // Reset screenshot
     setPreds(null);
+    setModifiedImagex(null);
   };
   const renderPredictions = () => {
     const displayedImageWidth = '40%'; // Adjust as needed
@@ -396,10 +522,10 @@ const Map = () => {
         <div className="absolute justify-center top-[0%] left-[0%] snap-center w-full h-full flex  bg-gray-900 bg-opacity-75 z-20
         max-sm:h-[screen] max-sm:w-[screen] 
         ">
-          <div className="absolute h-[full-100px] w-[1400px] m-10 bg-white p-4 rounded shadow-lg
+          <div className="absolute h-[full-100px] w-[1400px] m-10 backdrop-blur-[3px] bg-opacity-10 bg-blue-300 border border-slate-400 p-4 rounded-xl shadow-lg
          max-sm:h-[700px] max-sm:w-[380px] max-sm:flex-col  max-sm:justify-center max-sm:backdrop-blur-sm max-sm:bg-transparent max-sm:outline 
          ">
-            <button className="absolute -top-6 -right-6 bg-white text-gray-500  hover:text-gray-800
+            <button className="absolute -top-6 -right-6 backdrop-blur-sm border-slate-100 border p-2 rounded-md z-50 text-gray-200  hover:text-gray-400
   max-sm:-top-8 max-sm:right-1
   " onClick={handleClosePreview}>Close</button> {/* Close button */}
             <div className='flex h-full w-full
@@ -408,21 +534,27 @@ const Map = () => {
               <div className='flex-col h-[600px] w-[1000px] 
   max-sm:flex-col max-sm:h-[700px] max-sm:w-[350px]
   '>
-                <div className='outline' >
+                <div className=' rounded-xl' >
                   <img
 
                     src={screenshot}
                     alt="Screenshot"
-                    className={`h-[600px] w-[1000px] ${resultImage !== null ? 'hidden' : 'block'}
+                    className={`h-[600px] w-[1000px] rounded-xl border border-slate-300 ${resultImage !== null ? 'hidden' : 'block'} ${previewCanvas !== null ? 'hidden' : 'block'}
     max-sm:h-[400px] max-sm:w-[350px]
     `}
                   />
-
-                  {resultImage && <img className=' absolute left-5 h-[600px] w-[1000px]
+                 <div className={`absolute ${canvasRef !== null ?'block':'hidden'} left-4 top-4 h-[600px] w-[1000px] z-30 opacity-100`}>
+          <canvas className={` absolute ${canvasRef !== null ?'block':'hidden'} rounded-[5px] border border-opacity-10 border-white  left-0 top-0 h-[600px] w-[1000px] z-40 opacity-100`} ref={canvasRef.current}/>
+         </div>
+      
+      {modifiedImagex && 
+            <img className={` absolute left-4 top-4 z-50 h-[600px] w-[1000px] outline-dotted scale-100 ${stop ? 'block':'hidden'}`} src={modifiedImagex} alt='x' />
+          }
+                  {resultImage && <img className=' absolute left-5 h-[600px] w-[1000px] rounded-xl border-2 border-slate-300  
 max-sm:h-[400px] max-sm:w-[350px] max-sm:outline 
 ' src={resultImage} alt="Result" />}
 
-                  <div className={`absolute -bottom-10 rounded-md h-10 w-[350px] justify-center items-center backdrop:blur-sm outline
+                  <div className={`absolute -bottom-10 rounded-md h-10 w-[350px] justify-center items-center backdrop:blur-sm border border-blue-200
             max-sm:-bottom-14 ${resultImage !== null ? 'block' : 'hidden'}
             `}>
                     {resultImage && <div className=' flex m-2 '>
@@ -492,6 +624,11 @@ max-sm:h-[400px] max-sm:w-[350px] max-sm:outline
                   {/* Assuming you have a way to set the image state */}
 
                   <button className=" h-10 w-40 justify-center text-gray-500  hover:text-gray-800 rounded-lg m-2 bg-slate-200" onClick={handlePredict}>Run Inference </button>
+                  <button className="h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200" onClick={()=>setPath(!path)}>Path Generation</button>
+                  <button className={`h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200 ${path?'block':'hidden'}`} onClick={handleBrushing}>Mark Two Points</button>
+                  <button className={`h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200 ${stop === true && path === true ? 'show' : 'hidden'}`}> Generate Path</button>
+
+
                   {preds && preds.hasOwnProperty('Tree') ? (
                     <li className='h-10 w-50 text-black' key="Tree">
                       Tree: {preds['Tree']}
