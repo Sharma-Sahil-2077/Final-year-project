@@ -21,14 +21,20 @@ def bfs_path(image, start, end):
 
     while queue:
         (x, y), path = queue.popleft()
+        print("Current position:", (x, y))
+        print("Current path:", path)
         if (x, y) == end:
+            print("End point reached!")
             return path
         for dx, dy in directions:
             nx, ny = x + dx, y + dy
             if 0 <= nx < rows and 0 <= ny < cols and (nx, ny) not in visited and image[nx, ny] == 255:
                 queue.append(((nx, ny), path + [(nx, ny)]))
                 visited.add((nx, ny))
+                print("Added position to queue:", (nx, ny))
+    print("End point not reachable.")
     return None
+
 
 def find_random_border_point(image, side):
     rows, cols = image.shape
@@ -43,6 +49,81 @@ def find_random_border_point(image, side):
     if not candidates:
         return None
     return random.choice(candidates)
+
+
+
+def find_red_circles(image):
+    """
+    Detects and returns the coordinates of red circles in the image.
+
+    Args:
+        image (numpy.ndarray): Input image in BGR format.
+
+    Returns:
+        list: List of tuples containing the coordinates of red circles.
+    """
+    print("Converting image to HSV color space")
+    # Convert the image to HSV color space
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    print("Defining red color ranges in HSV")
+    # Define the range for red color in HSV
+    lower_red1 = np.array([0, 100, 100])
+    upper_red1 = np.array([10, 255, 255])
+    lower_red2 = np.array([160, 100, 100])
+    upper_red2 = np.array([180, 255, 255])
+    
+    print("Creating masks for red color")
+    # Create masks for red color
+    mask1 = cv2.inRange(hsv_image, lower_red1, upper_red1)
+    mask2 = cv2.inRange(hsv_image, lower_red2, upper_red2)
+    mask = cv2.bitwise_or(mask1, mask2)
+    
+    print("Finding contours in the mask")
+    # Find contours in the mask
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    centers = []
+    
+    print("Iterating through contours to find centers of red circles")
+    # Iterate through contours and find the center of each red circle
+    for contour in contours:
+        print("Calculating moments of the contour")
+        # Calculate the moments of the contour
+        M = cv2.moments(contour)
+        if M['m00'] != 0:
+            # Calculate the center of the contour
+            cX = int(M['m10'] / M['m00'])
+            cY = int(M['m01'] / M['m00'])
+            print(f"Found red circle at: ({cX}, {cY})")
+            centers.append((cX, cY))
+    
+    print("Returning list of centers")
+    return centers
+
+def get_two_red_circle_coordinates(image):
+    """
+    Finds and returns the coordinates of two red circles in the image.
+
+    Args:
+        image (numpy.ndarray): Input image in BGR format.
+
+    Returns:
+        tuple: Coordinates of the first and second red circles, or None if less than two circles are found.
+    """
+    print("Calling find_red_circles to get red circle coordinates")
+    red_circles = find_red_circles(image)
+    
+    print("Checking if at least two red circles are found")
+    # Check if at least two red circles are found
+    if len(red_circles) >= 2:
+        print(f"Two red circles found at: {red_circles[0]}, {red_circles[1]}")
+        return red_circles[0], red_circles[1]
+    else:
+        print("Less than two red circles found")
+        return None
+
+
 
 x = os.path.join(os.path.dirname(__file__), 'best.pt')
 model = YOLO(x)
@@ -126,9 +207,14 @@ def predict_path():
 
         nparr = np.frombuffer(image_bytes, np.uint8)
         image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        image_bytes2 = request.files['image2'].read()
+
+        nparr2 = np.frombuffer(image_bytes2, np.uint8)
+        image2 = cv2.imdecode(nparr2, cv2.IMREAD_COLOR)
         # Run inference
          # or 'indirect'
         wimage = np.ones_like(image) * 255  # Create a white image
+
 
         if mode == 'direct':
             X = model(image, conf=conf_threshold, classes=[2])
@@ -151,14 +237,15 @@ def predict_path():
                 # Copy the predicted region from the original image to the white image
                     wimage[mask_image == 255] = image[mask_image == 255]
                     gray_image = cv2.cvtColor(wimage, cv2.COLOR_BGR2GRAY)
-                    start = find_random_border_point(gray_image, 'top') or find_random_border_point(gray_image, 'left')
-                    end = find_random_border_point(gray_image, 'bottom') or find_random_border_point(gray_image, 'right')
+                    coordinates = get_two_red_circle_coordinates(image2)
+                    print(f'coordinates',coordinates[0],coordinates[1])
                     
-                    if start and end:
-                        path_points = bfs_path(gray_image, start, end)
-                        if path_points:
-                            for point in path_points:
-                                wimage[point] = [0, 0, 255]  # Draw path in red
+                    path_points = bfs_path(gray_image, coordinates[0], coordinates[1])
+                    print(f'bfs point',path_points)
+                    if path_points:
+                        for point in path_points:
+                            print('executing')
+                            wimage[point] = [0, 0, 255]  # Draw path in red
                     output_path = os.path.join(os.path.dirname(__file__), 'output.jpg')
                     cv2.imwrite(output_path, wimage)
                     

@@ -23,10 +23,10 @@ const Map = () => {
   const [preds, setPreds] = useState(null);
   const [showPreviewCanvas, setShowPreviewCanvas] = useState(false);
   const canvasRef = useRef(null);
-  const [previewCanvas , setPreviewCanvas ] = useState(null);
+  const [previewCanvas, setPreviewCanvas] = useState(null);
   const [modifiedImagex, setModifiedImagex] = useState(null)
   const clickCounter = useRef(0);
-  const [stop ,setStop] = useState(false);
+  const [stop, setStop] = useState(false);
   const [path, setPath] = useState(false);
 
   const mapStyles = [
@@ -149,7 +149,7 @@ const Map = () => {
         throw new Error('Failed to fetch static map image');
       }
       const imageBlob = await response.blob();
-      
+
       // Convert image to PNG
       const fileReader = new FileReader();
       fileReader.onload = () => {
@@ -163,7 +163,7 @@ const Map = () => {
           const scaledHeight = 600;
           canvas.width = scaledWidth;
           canvas.height = scaledHeight;
-          ctx.drawImage(img, 0, 0,scaledWidth, scaledHeight);
+          ctx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
           const pimage = canvas.toDataURL('image/png');
           // Save both original image and PNG in state variables
           setScreenshot(imageUrl);
@@ -284,34 +284,64 @@ const Map = () => {
     }
   };
 
+  const handlePath = async () => {
 
+    try {
+      // setModifiedImagex(null);
+      // setImageData(null);
+      // const byteString = atob(pngimage.split(",")[1]);
+      // const arrayBuffer = new ArrayBuffer(byteString.length);
+      // const uint8Array = new Uint8Array(modifiedImagex);
+      // for (let i = 0; i < byteString.length; i++) {
+      //   uint8Array[i] = byteString.charCodeAt(i);
+      // }
+      const blob = new Blob([screenshot], { type: 'image/jpeg' });
+      const file = new File([blob], "image.jpg", { type: 'image/jpeg' });
+      const blob2 = new Blob([modifiedImagex], { type: 'image/jpeg' });
+      const file2 = new File([blob2], "image2.jpg", { type: 'image/jpeg' });
 
-  const handleConfidenceChange = async (e) => {
-    setConfidence(e.target.value);
-    await handlePredict();
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("image2", file2);
+      const response = await axios.post("http://localhost:5000/predict/path", formData, {
+        responseType: 'blob',
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
+    }
+    catch (error) {
+      console.error("Error:", error);
+    }
   };
-  const handleClick = (event) => {
-    console.log("Click event occurred on the canvas");
-    // Get click coordinates relative to the canvas
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
 
-    console.log("Clicked coordinates (x, y):", x, y);
+const handleConfidenceChange = async (e) => {
+  setConfidence(e.target.value);
+  await handlePredict();
 
-    // Draw circle at clicked coordinates
-    ctx.fillStyle = 'red';
-    ctx.beginPath();
-    ctx.arc(x, y, 10, 0, Math.PI * 2);
-    ctx.fill();
+};
+const handleClick = (event) => {
+  console.log("Click event occurred on the canvas");
+  // Get click coordinates relative to the canvas
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
 
-    console.log("Circle drawn at clicked coordinates");
+  console.log("Clicked coordinates (x, y):", x, y);
 
-    // Save the modified canvas as an image
-    const modifiedImage = canvas.toDataURL('image/png');
-    console.log("Modified image data URL:", modifiedImage);
-    setModifiedImageURL(modifiedImage);
+  // Draw circle at clicked coordinates
+  ctx.fillStyle = 'red';
+  ctx.beginPath();
+  ctx.arc(x, y, 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  console.log("Circle drawn at clicked coordinates");
+
+  // Save the modified canvas as an image
+  const modifiedImage = canvas.toDataURL('image/png');
+  console.log("Modified image data URL:", modifiedImage);
+  setModifiedImageURL(modifiedImage);
 };
 
 
@@ -320,195 +350,195 @@ const handleBrushing = () => {
   console.log("Function started");
 
   if (!canvasRef.current) {
-      const canvas = document.createElement('canvas');
-      canvasRef.current = canvas;
+    const canvas = document.createElement('canvas');
+    canvasRef.current = canvas;
 
-      console.log("Canvas element created:", canvas);
+    console.log("Canvas element created:", canvas);
 
-      const ctx = canvas.getContext('2d');
-      console.log("Canvas context:", ctx);
+    const ctx = canvas.getContext('2d');
+    console.log("Canvas context:", ctx);
 
-      // Style the canvas to ensure visibility and interactivity
-      canvas.style.position = 'absolute';
-      canvas.style.top = '7.7%';
-      canvas.style.left = '5.4%';
-      canvas.style.zIndex = '30';
-      
-      canvas.style.border = '1px solid black';
-      canvas.style.cursor = 'pointer';  // Change cursor to pointer
+    // Style the canvas to ensure visibility and interactivity
+    canvas.style.position = 'absolute';
+    canvas.style.top = '7.7%';
+    canvas.style.left = '5.4%';
+    canvas.style.zIndex = '30';
 
-      // Append the canvas to the body (or any other container)
-      document.body.appendChild(canvas);
-      console.log("Canvas appended to DOM");
+    canvas.style.border = '1px solid black';
+    canvas.style.cursor = 'pointer';  // Change cursor to pointer
 
-      // Add hover effect to change cursor style
-      canvas.addEventListener('mouseover', () => {
-          canvas.style.cursor = 'pointer';
-      });
+    // Append the canvas to the body (or any other container)
+    document.body.appendChild(canvas);
+    console.log("Canvas appended to DOM");
 
-      canvas.addEventListener('mouseout', () => {
-          canvas.style.cursor = 'default';
-      });
+    // Add hover effect to change cursor style
+    canvas.addEventListener('mouseover', () => {
+      canvas.style.cursor = 'pointer';
+    });
 
-      const image = new Image();
+    canvas.addEventListener('mouseout', () => {
+      canvas.style.cursor = 'default';
+    });
 
-      // Load the image onto the canvas
-      image.onload = () => {
-          console.log("Image loaded");
-          canvas.width = image.width;
-          canvas.height = image.height;
-          ctx.drawImage(image, 0, 0);
-          console.log(canvas.width, canvas.height);
+    const image = new Image();
 
-          // Add click event listener to the canvas
-          const handleClick = (event) => {
-              console.log('Click event listener triggered');
+    // Load the image onto the canvas
+    image.onload = () => {
+      console.log("Image loaded");
+      canvas.width = image.width;
+      canvas.height = image.height;
+      ctx.drawImage(image, 0, 0);
+      console.log(canvas.width, canvas.height);
 
-              // Get click coordinates relative to the canvas
-              const rect = canvas.getBoundingClientRect();
-              const x = event.clientX - rect.left;
-              const y = event.clientY - rect.top;
+      // Add click event listener to the canvas
+      const handleClick = (event) => {
+        console.log('Click event listener triggered');
 
-              // Draw circle at clicked coordinates
-              ctx.fillStyle = 'red';
-              ctx.beginPath();
-              ctx.arc(x, y, 10, 0, Math.PI * 2);
-              ctx.fill();
-              console.log(`Circle drawn at (${x}, ${y})`);
+        // Get click coordinates relative to the canvas
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
 
-              // Increment click counter
-              clickCounter.current += 1;
+        // Draw circle at clicked coordinates
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        console.log(`Circle drawn at (${x}, ${y})`);
 
-              // Save the modified canvas as an image
-              const modifiedImage = canvas.toDataURL('image/png');
-              setModifiedImagex(modifiedImage);
-              console.log('Modified image URL set');
+        // Increment click counter
+        clickCounter.current += 1;
 
-              // Remove the event listener after 2 clicks
-              if (clickCounter.current >= 2) {
-                  canvas.style.display = 'none';
-                  setStop(!stop)
-                  canvas.removeEventListener('click', handleClick);
-                  console.log('Click event listener removed');
-              }
-          };
+        // Save the modified canvas as an image
+        const modifiedImage = canvas.toDataURL('image/png');
+        setModifiedImagex(modifiedImage);
+        console.log('Modified image URL set');
 
-          canvas.addEventListener('click', handleClick);
-          console.log('Click event listener added');
+        // Remove the event listener after 2 clicks
+        if (clickCounter.current >= 2) {
+          canvas.style.display = 'none';
+          setStop(!stop)
+          canvas.removeEventListener('click', handleClick);
+          console.log('Click event listener removed');
+        }
       };
 
-      // Set the source of the image
-      image.src = pngimage;
-      console.log('Source set');
+      canvas.addEventListener('click', handleClick);
+      console.log('Click event listener added');
+    };
+
+    // Set the source of the image
+    image.src = pngimage;
+    console.log('Source set');
   } else {
-      console.log('Canvas already exists, skipping creation');
+    console.log('Canvas already exists, skipping creation');
   }
 };
-   
-
-
-
-      
-    
-  
 
 
 
 
-  const getMapParameters = () => {
-    const center = map.getCenter();
-    console.log('Center:', center);
-    const zoom = map.getZoom();
-    console.log('Zoom:', zoom);
-    const width = Math.min(mapContainerRef.current.offsetWidth, 1280);
-    console.log('Width:', width);
-    const height = mapContainerRef.current.offsetHeight;
-    console.log('Height:', height);
-    const latitude = center.lat;
-    console.log('Latitude:', latitude);
-    const longitude = center.lng;
-    console.log('Longitude:', longitude);
-    return { latitude, longitude, zoom, width, height };
+
+
+
+
+
+
+
+const getMapParameters = () => {
+  const center = map.getCenter();
+  console.log('Center:', center);
+  const zoom = map.getZoom();
+  console.log('Zoom:', zoom);
+  const width = Math.min(mapContainerRef.current.offsetWidth, 1280);
+  console.log('Width:', width);
+  const height = mapContainerRef.current.offsetHeight;
+  console.log('Height:', height);
+  const latitude = center.lat;
+  console.log('Latitude:', latitude);
+  const longitude = center.lng;
+  console.log('Longitude:', longitude);
+  return { latitude, longitude, zoom, width, height };
+};
+
+const handleClosePreview = () => {
+  setStop(!stop);
+  canvasRef.current = null;
+  setShowPreview(false);
+  setResultImage(null);
+  setImageData(null);
+  setScreenshot(null); // Reset screenshot
+  setPreds(null);
+  setModifiedImagex(null);
+};
+const renderPredictions = () => {
+  const displayedImageWidth = '40%'; // Adjust as needed
+  const originalImageWidth = 1280; // Original image width
+  const widthRatio = originalImageWidth / displayedImageWidth;
+}
+const handleChangeThreshold = (e) => {
+  setThreshold(parseFloat(e.target.value));
+};
+useEffect(() => {
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !showPreview) { // Set cropping state to true
+    }
   };
 
-  const handleClosePreview = () => {
-    setStop(!stop);
-    canvasRef.current = null;
-    setShowPreview(false);
-    setResultImage(null);
-    setImageData(null);
-    setScreenshot(null); // Reset screenshot
-    setPreds(null);
-    setModifiedImagex(null);
+  document.addEventListener('keydown', handleKeyPress);
+
+  return () => {
+    document.removeEventListener('keydown', handleKeyPress);
   };
-  const renderPredictions = () => {
-    const displayedImageWidth = '40%'; // Adjust as needed
-    const originalImageWidth = 1280; // Original image width
-    const widthRatio = originalImageWidth / displayedImageWidth;
-  }
-  const handleChangeThreshold = (e) => {
-    setThreshold(parseFloat(e.target.value));
-  };
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.key === 'Enter' && !showPreview) { // Set cropping state to true
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [showPreview]);
+}, [showPreview]);
 
 
 
 
-  return (
-    <div className='h-screen w-screen
+return (
+  <div className='h-screen w-screen
     max-sm:h-screen max-sm:w-screen
     '>
-      <div className="relative w-full h-screen
+    <div className="relative w-full h-screen
       max-sm:h-screen max-sm:w-full
       ">
-        <div ref={mapContainerRef} id="map" className="absolute top-0 left-0 w-full h-full
+      <div ref={mapContainerRef} id="map" className="absolute top-0 left-0 w-full h-full
         max-sm:absolute max-sm:top-0 max-sm:left-0 max-sm:w-full max-sm:h-full
         "></div>
-        <div className="2xl:absolute 2xl:top-4 2xl:left-4
+      <div className="2xl:absolute 2xl:top-4 2xl:left-4
         max-sm:absolute max-sm:top-4 max-sm:left-4
         ">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleChange}
-            placeholder="Search location..."
-            className="2xl:p-2 2xl:h-6 2xl:rounded 2xl:opacity-70 text-black
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={handleChange}
+          placeholder="Search location..."
+          className="2xl:p-2 2xl:h-6 2xl:rounded 2xl:opacity-70 text-black
             max-sm:p-2 max-sm:h-10 max-sm:opacity-70 max-sm:rounded-md
             "
-          />
-          <button onClick={captureMapScreenshot} className="mt-2
+        />
+        <button onClick={captureMapScreenshot} className="mt-2
           max-sm:mt-2 max-sm:text-sm
           ">Take Screenshot</button> {/* Button to capture screenshot */}
 
-          <div className="mt-2 opacity-80 text-black
+        <div className="mt-2 opacity-80 text-black
           max-sm:text-sm">
-            {searchResults.map((result, index) => (
-              <div key={index} onClick={() => handleResultClick(result)} className="cursor-pointer hover:bg-gray-200 px-3 py-2 border-b bg-white border-gray-300">{result.place_name}</div>
-            ))}
-          </div>
+          {searchResults.map((result, index) => (
+            <div key={index} onClick={() => handleResultClick(result)} className="cursor-pointer hover:bg-gray-200 px-3 py-2 border-b bg-white border-gray-300">{result.place_name}</div>
+          ))}
         </div>
-        <div className="absolute bottom-0 left-0 2xl:text-2xl bg-white p-2 rounded shadow-md text-black z-20
+      </div>
+      <div className="absolute bottom-0 left-0 2xl:text-2xl bg-white p-2 rounded shadow-md text-black z-20
         max-sm:text-sm max-sm:h-9
         ">
-          Zoom Level: {zoomLevel.toFixed(2)}
-        </div>
-        <div className='absolute right-0 top-0
+        Zoom Level: {zoomLevel.toFixed(2)}
+      </div>
+      <div className='absolute right-0 top-0
         max-sm:h-10 max-sm:w-20
         ' >
-          <MapStyleSelector mapStyles={mapStyles} selectedStyle={selectedStyle} handleStyleChange={handleStyleChange} />
-        </div>
-        {/* <div className="absolute top-4 right-4 text-black">
+        <MapStyleSelector mapStyles={mapStyles} selectedStyle={selectedStyle} handleStyleChange={handleStyleChange} />
+      </div>
+      {/* <div className="absolute top-4 right-4 text-black">
   <select value={selectedStyle} onChange={(e) => handleStyleChange(e.target.value)}>
     {mapStyles.map((style, index) => (
       <option key={index} value={style.value}>
@@ -517,137 +547,137 @@ const handleBrushing = () => {
     ))}
   </select>
 </div> */}
-      </div>
-      {showPreview && screenshot && (
-        <div className="absolute justify-center top-[0%] left-[0%] snap-center w-full h-full flex  bg-gray-900 bg-opacity-75 z-20
+    </div>
+    {showPreview && screenshot && (
+      <div className="absolute justify-center top-[0%] left-[0%] snap-center w-full h-full flex  bg-gray-900 bg-opacity-75 z-20
         max-sm:h-[screen] max-sm:w-[screen] 
         ">
-          <div className="absolute h-[full-100px] w-[1400px] m-10 backdrop-blur-[3px] bg-opacity-10 bg-blue-300 border border-slate-400 p-4 rounded-xl shadow-lg
+        <div className="absolute h-[full-100px] w-[1400px] m-10 backdrop-blur-[3px] bg-opacity-10 bg-blue-300 border border-slate-400 p-4 rounded-xl shadow-lg
          max-sm:h-[700px] max-sm:w-[380px] max-sm:flex-col  max-sm:justify-center max-sm:backdrop-blur-sm max-sm:bg-transparent max-sm:outline 
          ">
-            <button className="absolute -top-6 -right-6 backdrop-blur-sm border-slate-100 border p-2 rounded-md z-50 text-gray-200  hover:text-gray-400
+          <button className="absolute -top-6 -right-6 backdrop-blur-sm border-slate-100 border p-2 rounded-md z-50 text-gray-200  hover:text-gray-400
   max-sm:-top-8 max-sm:right-1
   " onClick={handleClosePreview}>Close</button> {/* Close button */}
-            <div className='flex h-full w-full
+          <div className='flex h-full w-full
   max-sm:h-[400px] max-sm:w-[400px] max-sm:flex-col
   '>
-              <div className='flex-col h-[600px] w-[1000px] 
+            <div className='flex-col h-[600px] w-[1000px] 
   max-sm:flex-col max-sm:h-[700px] max-sm:w-[350px]
   '>
-                <div className=' rounded-xl' >
-                  <img
+              <div className=' rounded-xl' >
+                <img
 
-                    src={screenshot}
-                    alt="Screenshot"
-                    className={`h-[600px] w-[1000px] rounded-xl border border-slate-300 ${resultImage !== null ? 'hidden' : 'block'} ${previewCanvas !== null ? 'hidden' : 'block'}
+                  src={screenshot}
+                  alt="Screenshot"
+                  className={`h-[600px] w-[1000px] rounded-xl border border-slate-300 ${resultImage !== null ? 'hidden' : 'block'} ${previewCanvas !== null ? 'hidden' : 'block'}
     max-sm:h-[400px] max-sm:w-[350px]
     `}
-                  />
-                 <div className={`absolute ${canvasRef !== null ?'block':'hidden'} left-4 top-4 h-[600px] w-[1000px] z-30 opacity-100`}>
-          <canvas className={` absolute ${canvasRef !== null ?'block':'hidden'} rounded-[5px] border border-opacity-10 border-white  left-0 top-0 h-[600px] w-[1000px] z-40 opacity-100`} ref={canvasRef.current}/>
-         </div>
-      
-      {modifiedImagex && 
-            <img className={` absolute left-4 top-4 z-50 h-[600px] w-[1000px] outline-dotted scale-100 ${stop ? 'block':'hidden'}`} src={modifiedImagex} alt='x' />
-          }
-                  {resultImage && <img className=' absolute left-5 h-[600px] w-[1000px] rounded-xl border-2 border-slate-300  
+                />
+                <div className={`absolute ${canvasRef !== null ? 'block' : 'hidden'} left-4 top-4 h-[600px] w-[1000px] z-30 opacity-100`}>
+                  <canvas className={` absolute ${canvasRef !== null ? 'block' : 'hidden'} rounded-[5px] border border-opacity-10 border-white  left-0 top-0 h-[600px] w-[1000px] z-40 opacity-100`} ref={canvasRef.current} />
+                </div>
+
+                {modifiedImagex &&
+                  <img className={` absolute left-4 top-4 z-50 h-[600px] w-[1000px] outline-dotted scale-100 ${stop ? 'block' : 'hidden'}`} src={modifiedImagex} alt='x' />
+                }
+                {resultImage && <img className=' absolute left-5 h-[600px] w-[1000px] rounded-xl border-2 border-slate-300  
 max-sm:h-[400px] max-sm:w-[350px] max-sm:outline 
 ' src={resultImage} alt="Result" />}
 
-                  <div className={`absolute -bottom-10 rounded-md h-10 w-[350px] justify-center items-center backdrop:blur-sm border border-blue-200
+                <div className={`absolute -bottom-10 rounded-md h-10 w-[350px] justify-center items-center backdrop:blur-sm border border-blue-200
             max-sm:-bottom-14 ${resultImage !== null ? 'block' : 'hidden'}
             `}>
-                    {resultImage && <div className=' flex m-2 '>
-                      <input
-                        className=' backdrop-blur-md
+                  {resultImage && <div className=' flex m-2 '>
+                    <input
+                      className=' backdrop-blur-md
              max-sm:
              '
+                      type="range"
+                      min="0.01"
+                      max="1"
+                      step="0.01"
+                      value={confidence}
+                      onChange={handleConfidenceChange}
+                    />
+
+                    <span className='ml-2'>   {confidence}    Confidence Level</span> </div>}
+                </div>
+
+                <div className='absolute -top-6 left-4 '>
+                  {imageData && (
+
+                    <div className='absolute -bottom-10 rounded-md  w-[350px]  bg-black outline outline-yellow-300 '>
+                      <input
                         type="range"
-                        min="0.01"
+                        min="0"
                         max="1"
                         step="0.01"
-                        value={confidence}
-                        onChange={handleConfidenceChange}
+                        value={threshold}
+                        onChange={handleChangeThreshold}
+                        className="h-6 w-40"
                       />
-
-                      <span className='ml-2'>   {confidence}    Confidence Level</span> </div>}
-                  </div>
-
-                  <div className='absolute -top-6 left-4 '>
-                    {imageData && (
-
-                      <div className='absolute -bottom-10 rounded-md  w-[350px]  bg-black outline outline-yellow-300 '>
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.01"
-                          value={threshold}
-                          onChange={handleChangeThreshold}
-                          className="h-6 w-40"
-                        />
-                        {/* <img src={screenshot} alt="Your Image" style={{ maxWidth:'100%' }} /> */}
-                        <div className='outline outline-slate-950 absolute  h-[600px] w-[1000px] object-contain '>
-                          {imageData.predictions.map((prediction, index) => {
-                            if (prediction.confidence >= threshold) {
-                              return (
-                                <div
-                                  className="absolute "
-                                  key={index}
-                                  style={{
-                                    top: prediction.y / 1.85, // Adjusted position
-                                    left: prediction.x / 2.1, // Adjusted position
-                                    width: prediction.width / 1.8, // Adjusted width
-                                    height: prediction.height / 1.8, // Adjusted height
-                                    border: '4px solid green',
-                                    boxSizing: 'border-box',
-                                  }}
-                                >{prediction.class}</div>
-                              );
-                            } else {
-                              return null;
-                            }
-                          })}
-                        </div>
+                      {/* <img src={screenshot} alt="Your Image" style={{ maxWidth:'100%' }} /> */}
+                      <div className='outline outline-slate-950 absolute  h-[600px] w-[1000px] object-contain '>
+                        {imageData.predictions.map((prediction, index) => {
+                          if (prediction.confidence >= threshold) {
+                            return (
+                              <div
+                                className="absolute "
+                                key={index}
+                                style={{
+                                  top: prediction.y / 1.85, // Adjusted position
+                                  left: prediction.x / 2.1, // Adjusted position
+                                  width: prediction.width / 1.8, // Adjusted width
+                                  height: prediction.height / 1.8, // Adjusted height
+                                  border: '4px solid green',
+                                  boxSizing: 'border-box',
+                                }}
+                              >{prediction.class}</div>
+                            );
+                          } else {
+                            return null;
+                          }
+                        })}
                       </div>
+                    </div>
 
-                    )}
-                  </div>
+                  )}
                 </div>
-
               </div>
-              <div className='flex-col w-[200px] justify-center items-center m-8
+
+            </div>
+            <div className='flex-col w-[200px] justify-center items-center m-8
   max-sm:flex
   '>
-                <button className=" h-10 w-20 justify-center text-gray-500  hover:text-gray-800 rounded-lg m-2  bg-slate-200" onClick={handlePrediction}>Predict</button>
-                <div>
-                  {/* Assuming you have a way to set the image state */}
+              <button className=" h-10 w-20 justify-center text-gray-500  hover:text-gray-800 rounded-lg m-2  bg-slate-200" onClick={handlePrediction}>Predict</button>
+              <div>
+                {/* Assuming you have a way to set the image state */}
 
-                  <button className=" h-10 w-40 justify-center text-gray-500  hover:text-gray-800 rounded-lg m-2 bg-slate-200" onClick={handlePredict}>Run Inference </button>
-                  <button className="h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200" onClick={()=>setPath(!path)}>Path Generation</button>
-                  <button className={`h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200 ${path?'block':'hidden'}`} onClick={handleBrushing}>Mark Two Points</button>
-                  <button className={`h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200 ${stop === true && path === true ? 'show' : 'hidden'}`}> Generate Path</button>
+                <button className=" h-10 w-40 justify-center text-gray-500  hover:text-gray-800 rounded-lg m-2 bg-slate-200" onClick={handlePredict}>Run Inference </button>
+                <button className="h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200" onClick={() => setPath(!path)}>Path Generation</button>
+                <button className={`h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200 ${path ? 'block' : 'hidden'}`} onClick={handleBrushing}>Mark Two Points</button>
+                <button className={`h-10 w-40 justify-center text-gray-500 hover:text-gray-800 rounded-lg m-2 bg-slate-200 ${stop === true && path === true ? 'show' : 'hidden'}`}> Generate Path</button>
 
 
-                  {preds && preds.hasOwnProperty('Tree') ? (
-                    <li className='h-10 w-50 text-black' key="Tree">
-                      Tree: {preds['Tree']}
-                    </li>
-                  ) : (
-                    <li className={`h-10 w-50 text-black ${preds === null?'hidden':'block'} `} key="Tree">
-                      No Tree Detected
-                    </li>
-                  )}
+                {preds && preds.hasOwnProperty('Tree') ? (
+                  <li className='h-10 w-50 text-black' key="Tree">
+                    Tree: {preds['Tree']}
+                  </li>
+                ) : (
+                  <li className={`h-10 w-50 text-black ${preds === null ? 'hidden' : 'block'} `} key="Tree">
+                    No Tree Detected
+                  </li>
+                )}
 
-                </div>
               </div>
             </div>
           </div>
-
         </div>
-      )}
-    </div>
-  );
+
+      </div>
+    )}
+  </div>
+);
 };
 
 export default Map;
