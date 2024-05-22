@@ -1,0 +1,32 @@
+@keyframes moveLine {
+    0%, 100% {
+      transform: translateY(-8000%);
+    }
+    50% {
+      transform: translateY(8000%);
+    }
+  }
+  
+  
+  @keyframes moveDot {
+    0% {
+      opacity: 0;
+    }
+   
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  
+  .animate-line {
+    animation: moveLine 10s linear infinite; /* Adjust the duration here */
+  }
+  
+  
+  .animate-dot {
+    animation: moveDot 2s linear infinite;
+  }
+  

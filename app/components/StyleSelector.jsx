@@ -10,13 +10,13 @@ function MapStyleSelector({ mapStyles, selectedStyle, handleStyleChange }) {
   };
 
   return (
-    <div className="absolute right-32 text-slate-700 h-20 w-40
+    <div className="absolute right-32  h-20 w-40 text-white
     max-sm:h-10 max-sm:w-20 max-sm:top-14 max-sm:right-0
     ">
       {/* Button to show the selected style */}
       
-      <button
-        className="flex right-20 items-center h-20 w-40 m-2 p-2 rounded-xl text-[12px] bg-white hover:bg-gray-200 cursor-pointer z-20
+      <button 
+        className="flex right-20 items-center h-20 w-40 m-2 p-2 rounded-xl text-[12px] bg-blue-100 bg-opacity-20  border-[1px]  backdrop-blur-sm hover:bg-opacity-5 cursor-pointer z-20
         max-sm:h-14 max-sm:w-14 max-sm:justify-center 
         "
         onClick={toggleDropdown}
@@ -25,12 +25,12 @@ function MapStyleSelector({ mapStyles, selectedStyle, handleStyleChange }) {
           <img
             src={mapStyles.find(style => style.value === selectedStyle).image}
             alt={mapStyles}
-            className="w-12 h-12 m-2
+            className="w-12 h-12 m-2 rounded-lg border-[1px]
             max-sm:w-10 max-sm:h-10 max-sm:p-0 max-sm:rounded-lg
             " // Adjust size as needed
           />
         ) : 'Select Style'}
-        <h1 className='text-slate-700
+        <h1 className='text-white
         max-sm:hidden
         '>{mapStyles.find(style => style.value === selectedStyle).label}</h1>
       </button>
@@ -43,7 +43,7 @@ function MapStyleSelector({ mapStyles, selectedStyle, handleStyleChange }) {
           {mapStyles.map((style, index) => (
             <div
               key={index}
-              className={`flex items-center   h-20 w-40 m-2 p-2 rounded-2xl text-[12px] bg-white hover:bg-gray-200 cursor-pointer
+              className={`flex items-center   h-20 w-40 m-2 p-2 rounded-2xl text-[12px] bg-blue-100 bg-opacity-20  border-[1px]  backdrop-blur-sm cursor-pointer
               max-sm:h-14 max-sm:w-14
               `}
               onClick={() => {
@@ -56,11 +56,11 @@ function MapStyleSelector({ mapStyles, selectedStyle, handleStyleChange }) {
                 height={20}
                 src={style.image}
                 alt={style.label}
-                className="w-14 h-14 mr-2  rounded-xl
+                className="w-12 h-12 mx-2  rounded-xl border-[1px]
                 max-sm:h-10 max-sm:w-10 max-sm:rounded-lg
                 " // Adjust size as needed
               />
-              <span className='max-sm:hidden'>{style.label}</span>
+              <span className='max-sm:hidden text-white'>{style.label}</span>
             </div>
           ))}
         </div>

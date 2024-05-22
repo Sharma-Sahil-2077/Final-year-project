@@ -3,3 +3,5 @@ Flask==2.2.2
 ultralytics
 Pillow
 flask-cors
+flask
+pnpm
