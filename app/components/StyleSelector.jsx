@@ -10,13 +10,13 @@ function MapStyleSelector({ mapStyles, selectedStyle, handleStyleChange }) {
   };
 
   return (
-    <div className="absolute right-32  h-20 w-40 text-white
+    <div className="absolute right-32  h-20 w-40 text-blue-500 bg-opacity-20
     max-sm:h-10 max-sm:w-20 max-sm:top-14 max-sm:right-0
     ">
       {/* Button to show the selected style */}
       
       <button 
-        className="flex right-20 items-center h-20 w-40 m-2 p-2 rounded-xl text-[12px] bg-blue-100 bg-opacity-20  border-[1px]  backdrop-blur-sm hover:bg-opacity-5 cursor-pointer z-20
+        className="flex right-20 items-center h-20 w-40 m-2 p-2 rounded-xl text-[12px] bg-blue-500 bg-opacity-20  border-[1px]  backdrop-blur-sm hover:bg-opacity-5 cursor-pointer z-20
         max-sm:h-14 max-sm:w-14 max-sm:justify-center 
         "
         onClick={toggleDropdown}
@@ -43,7 +43,7 @@ function MapStyleSelector({ mapStyles, selectedStyle, handleStyleChange }) {
           {mapStyles.map((style, index) => (
             <div
               key={index}
-              className={`flex items-center   h-20 w-40 m-2 p-2 rounded-2xl text-[12px] bg-blue-100 bg-opacity-20  border-[1px]  backdrop-blur-sm cursor-pointer
+              className={`flex items-center   h-20 w-40 m-2 p-2 rounded-2xl text-[12px] bg-blue-500 bg-opacity-20  border-[1px]  backdrop-blur-sm cursor-pointer
               max-sm:h-14 max-sm:w-14
               `}
               onClick={() => {
