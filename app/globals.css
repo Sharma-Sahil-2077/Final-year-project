@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  @font-face {
+    font-family: rune; /* Replace with the actual font name if different */
+    src: url("./fonts/CocobikerLight-aGnx.ttf") format("truetype");
+  }
+}
+
+@layer base {
+  @font-face {
+    font-family: runex; /* Replace with the actual font name if different */
+    src: url("./fonts/CocobikerUltralight-Egx4.ttf") format("truetype");
+  }
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

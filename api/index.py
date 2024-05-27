@@ -194,7 +194,7 @@ def images_to_video(images_dir, output_video_path):
 
     # Define codec and VideoWriter object
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(output_video_path, fourcc, 30.0, (width, height))
+    out = cv2.VideoWriter(output_video_path, fourcc, 30, (width, height))
 
     # Write each image to the video
     for image_file in image_files:

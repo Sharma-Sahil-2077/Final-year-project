@@ -49,6 +49,8 @@ const Map = () => {
   const [start, setStart] = useState(false);
   const [bearing , setBearing] = useState(330);
   const [pitch , setPitch] = useState(60);
+  const videoRef1 = useRef(null);
+  const videoRef2 = useRef(null);
 
 
   const mapStyles = [
@@ -222,7 +224,10 @@ const Map = () => {
       zoom: 2,
     pitch:0,
     bearing:0,
+    
     });
+    
+
     setTimeout(() => {
       const rotateMap = () => {
         const bearing = map.getBearing() + 2;
@@ -231,6 +236,9 @@ const Map = () => {
   
       intervalRef.current = setInterval(rotateMap, 50);
     }, 1000);
+    setZoomLevel(2)
+    setPitch(0)
+    setBearing(0)
   };
   
   // Call the functio
@@ -337,7 +345,10 @@ const Map = () => {
   };
 
   const handlePredict2 = async () => {
+    
     setAi(true)
+setResultImage(null)
+    setModifiedImagex(null)
 
     try {
       setModifiedImagex(null);
@@ -732,14 +743,34 @@ const Map = () => {
     }, 100); // Generates at least 5 numbers per second
   };
 
+  const playBothVideos = () => {
+    if (videoRef1.current && videoRef2.current) {
+      videoRef1.current.play();
+      videoRef2.current.play();
+    }
+  };
+
   return (
     <div className='h-screen w-screen
     max-sm:h-screen max-sm:w-screen
     '>
-      <div className={`h-auto w-auto backdrop:blur-sm justify-center flex-col  left-[48%] top-[48%] ${start === true?' duration-0 opacity-0' :' opacity-100 duration-1000'}  absolute z-50`}>
-        <span className='text-6xl flex backdrop-blur-sm '>Tree Crown Deliniation</span>
-        <div onClick={startAndZoom}className=' border-[1px] flex p-2 h-auto w-[100px] rounded-md z-50 cursor-pointer'>Click Here</div>
+      {/* {!start &&(
+      <div className='absolute left-0 top-0 h-screen w-screen bg-black opacity-0 z-20'></div>
+    )} */}
+
+      {!start &&(
+      <div className={`flex h-auto w-[750px] rounded-sm border-black border-2 backdrop:blur-md justify-start  bg-[#0000009d] bg-opacity-90 p-4 font-bold left-[50%] top-[40%] ${start === true?' duration-0 opacity-0' :' opacity-100 duration-1000'}  absolute z-50`}>
+       
+        <img  className=' rounded-sm  h-40 w-40' src='../../logo.png' alt='logo' />
+        
+
+        <div className='flex-col ml-4'>
+        <span className=' text-6xl backdrop-blur-sm font-rune text-[#ffffff] '>Raven AI</span>
+        <span onClick={startAndZoom}className={`${start?'':''} flex  border-[1px] flex p-2 h-auto w-[90px] bg-blue-800 hover:bg-opacity-50 hover:duration-1000 bg-opacity-20 rounded-[3px]  z-50 mt-2 text-center cursor-pointer`}>Start App</span>
       </div>
+
+      </div>
+)}
 
       {loading && (
         <div className="absolute z-50 h-full w-full">
@@ -757,6 +788,8 @@ const Map = () => {
           <Sloading />
         </div>
       )}
+
+
       <div className="relative w-full h-screen
       max-sm:h-screen max-sm:w-full
       ">
@@ -766,32 +799,35 @@ const Map = () => {
         <div className={`2xl:absolute ${start === true?' duration-1000 opacity-100':' opacity-0 duration-0'} 2xl:top-4 2xl:left-4 2xl:justify-between flex
         max-sm:absolute max-sm:top-4 max-sm:left-4
         `}>
+          <div className='mt-2 flex'>
+          <img className='h-10 w-10 rounded-sm ' src="../../logo.png" alt='Logo'/>
           <input
             type="text"
             value={searchQuery}
             onChange={handleChange}
             placeholder="Search location..."
-            className="2xl:p-2 2xl:h-6 2xl:rounded 2xl:opacity-100 text-white   bg-transparent  backdrop-blur-sm border-[1px] m-4
-            max-sm:p-2 max-sm:h-10 max-sm:opacity-70 max-sm:rounded-md
+            className="2xl:p-2 2xl:h-6 2xl:rounded-sm 2xl:opacity-100 text-white   bg-transparent  backdrop-blur-sm border-[1px] m-2
+            max-sm:p-2 max-sm:h-10 max-sm:opacity-70 max-sm:rounded-sm
             "
           />
-          <div className='flex  mx-44 w-[600px] justify-center backdrop-blur-[5px] border bg-blue-500  bg-opacity-20 rounded-md'>
-            <button onClick={captureMapScreenshot} className="mt-2 backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-100 bg-opacity-10 border-zinc-200 rounded-md m-2 p-1 px-2
+        </div>
+          <div className='flex  mx-44 w-[600px] justify-center backdrop-blur-5px] border bg-black  bg-opacity-40 rounded-sm'>
+            <button onClick={captureMapScreenshot} className="mt-2 backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-100 bg-opacity-10 border-zinc-200 rounded-sm m-2 p-1 px-2
           max-sm:mt-2 max-sm:text-sm
           ">Take Screenshot</button> {/* Button to capture screenshot */}
             <span className='text-white mt-4 '>Or</span>
-            <button onClick={handleuploadPreview} className="mt-2 backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-50 bg-opacity-10 border-blue-50  rounded-md m-2 p-1 px-2
+            <button onClick={handleuploadPreview} className="mt-2 backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-50 bg-opacity-10 border-blue-50  rounded-sm m-2 p-1 px-2
           max-sm:mt-2 max-sm:text-sm
           ">Upload Image or Video</button> {/* Button to Upload Picture */}
           </div>
-          <div className="absolute top-10 left-5 mt-2 opacity-80 text-black border-[1px] rounded-md
+          <div className="absolute top-10 left-5 mt-2 opacity-80 text-black border-[1px] rounded-sm
           max-sm:text-sm">
             {searchResults.map((result, index) => (
               <div key={index} onClick={() => handleResultClick(result)} className=" text-white cursor-pointer hover:bg-opacity-0 px-3 py-2 border-b backdrop-blur-sm bg-white bg-opacity-10 outline-[1px]">{result.place_name}</div>
             ))}
           </div>
         </div>
-        <div className={` absolute  ${start === true?' duration-1000 opacity-100':'opacity-0 duration-0'} bottom-0 left-0 2xl:text-2xl bg-blue-500 bg-opacity-20 outline outline-1 backdrop-blur-sm p-2 rounded shadow-md text-white z-20
+        <div className={` absolute  ${start === true?' duration-1000 opacity-100':'opacity-0 duration-0'} bottom-0 left-0 2xl:text-2xl bg-blue-800 bg-opacity-20 outline outline-1 backdrop-blur-sm p-2 rounded shadow-md text-white z-20
         max-sm:text-sm max-sm:h-9
         `}>
           <span className='shadow-xl'> Zoom Level: {zoomLevel.toFixed(2)}</span>
@@ -816,11 +852,11 @@ const Map = () => {
         max-sm:h-[screen] max-sm:w-[screen] 
         ">
 
-          <div className="absolute w-[1400px] h-[680px] m-10 backdrop-blur-[3px] bg-opacity-5 z-30 bg-blue-500 border border-slate-400 p-4 rounded-xl shadow-lg
+          <div className="absolute w-[1400px] h-[680px] m-10 backdrop-blur-[3px] bg-opacity-40 z-30 bg-black border border-slate-400 p-4 rounded-sm shadow-lg
          max-sm:h-[700px] max-sm:w-[380px] max-sm:flex-col  max-sm:justify-center max-sm:backdrop-blur-sm max-sm:bg-transparent max-sm:outline 
          ">
 
-            <div className='h-w-[1400px] h-[650px] gap-2 bg-blue-500 bg-opacity-20 rounded-md'>
+            <div className='h-w-[1400px] h-[650px] gap-2 bg-black bg-opacity-20 rounded-sm'>
 
               <div className='justify-center  '>
                 <input
@@ -847,7 +883,7 @@ const Map = () => {
                   {preview && (
                     <div className='m-2  '>
                       <img
-                        className='rounded-md ml-3 h-[400px] w-[400px] '
+                        className='rounded-sm ml-3 h-[400px] w-[400px] '
                         src={preview}
                         alt="Preview"
 
@@ -857,9 +893,9 @@ const Map = () => {
 
                   )}
                   {videoUrl && rvideo == null && (
-                    <div className='m-2 backdrop-blur-sm border-[1px] object-contain justify-center rounded-lg bg-black bg-opacity-40 shadow-2xl shadow-slate-600'>
+                    <div className='m-2 backdrop-blur-sm border-[1px] object-contain justify-center rounded-sm bg-black bg-opacity-40 shadow-2xl shadow-slate-600'>
                       <video
-                        className='rounded-md  m-4 h-[400px] w-[600px] '
+                        className='rounded-sm  m-4 h-[400px] w-[600px] '
                         src={videoUrl}
                         alt="Video"
                         autoPlay
@@ -873,7 +909,7 @@ const Map = () => {
                   {detectionResult && (
                     <div className='m-2 '>
                       <img
-                        className='rounded-md ml-3 h-[400px] w-[400px]'
+                        className='rounded-sm ml-3 h-[400px] w-[400px]'
                         src={detectionResult}
                         alt="Preview"
                         style={{ maxWidth: '100%', Height: '600px' }}
@@ -882,15 +918,15 @@ const Map = () => {
                     </div>
                   )}
                   {rvideo && (
-                    <div className='m-1 backdrop-blur-sm border-[1px] object-contain justify-center rounded-lg bg-black bg-opacity-40 shadow-2xl shadow-slate-600'>
+                    <div className='m-1 backdrop-blur-sm border-[1px] object-contain justify-center rounded-sm bg-black bg-opacity-40 shadow-2xl shadow-slate-600'>
                       <video
-                        className='rounded-md ml-3 h-[450px] w-[650px] '
+                      ref={videoRef1}
+                        className='rounded-sm ml-3 h-[450px] w-[650px] '
                         src={videoUrl}
                         alt="Video"
                         style={{ maxWidth: '96%', Height: '600px' }}
-                        autoPlay
+                        
                         loop
-                        playbackRate={0.5}
                         controls
                       />
 
@@ -898,15 +934,15 @@ const Map = () => {
 
                   )}
                   {rvideo && (
-                    <div className='m-1 backdrop-blur-sm border-[1px] object-contain justify-center rounded-lg bg-black bg-opacity-40 shadow-2xl shadow-slate-600'>
+                    <div className='m-1  backdrop-blur-sm border-[1px] object-contain justify-center rounded-sm bg-black bg-opacity-40 shadow-2xl shadow-slate-600'>
                       <video
-                        className='rounded-md ml-3 h-[450px] w-[650px]'
+                      ref={videoRef2}
+                        className='rounded-sm ml-3 h-[450px] w-[650px]'
                         src={rvideo}
                         alt="Result Video"
                         style={{ maxWidth: '96%', Height: '600px' }}
-                        autoPlay
+                        
                         loop
-                        playbackRate={0.5}
                         controls
                       />
 
@@ -917,14 +953,20 @@ const Map = () => {
                 </div>
                 <div className='flex h-auto justify-center w-[1380px]'>
                   {uplaodedFile && (
-                    <button onClick={handleDetect} className="mt-10 flex backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-100 bg-opacity-10 border-zinc-200 rounded-md m-2 p-1 px-2
+                    <button onClick={handleDetect} className="mt-10 flex backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-100 bg-opacity-10 border-zinc-200 rounded-sm m-2 p-1 px-2
           max-sm:mt-2 max-sm:text-sm
           ">Predict Image</button>
                   )}
-                  {videoFile && (
-                    <button onClick={handlevideo} className="mt-10  flex backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-100 bg-opacity-10 border-zinc-200 rounded-md m-2 p-1 px-2
+                  {videoFile && !rvideo && (
+                    <button onClick={handlevideo} className="mt-10  flex backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-100 bg-opacity-10 border-zinc-200 rounded-sm m-2 p-1 px-2
           max-sm:mt-2 max-sm:text-ssm
           ">Predict Video</button>
+                  )}
+
+{rvideo && (
+                    <button onClick={playBothVideos} className="mt-10  flex backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-100 bg-opacity-10 border-zinc-200 rounded-sm m-2 p-1 px-2
+          max-sm:mt-2 max-sm:text-ssm
+          ">Play</button>
                   )}
                 </div>
 
@@ -932,17 +974,17 @@ const Map = () => {
 
             </div>
           </div>
-          <div onClick={closeUploadPreview} className='flex relative left-[475px] top-0 m-2 h-8 w-12 backdrop-blur-sm outline outline-1 outline-blue-100 rounded-md text-center cursor-pointer'> <span className='text-center p-1'>close</span></div>
+          <div onClick={closeUploadPreview} className='flex relative left-[475px] top-0 m-2 h-8 w-12 backdrop-blur-sm outline outline-1 outline-blue-100 rounded-sm text-center cursor-pointer'> <span className='text-center p-1'>close</span></div>
         </div>
       )}
       {showPreview && screenshot && (
         <div className="absolute justify-center top-[0%] left-[0%] snap-center w-full h-full flex  bg-gray-900 bg-opacity-75 z-20
         max-sm:h-[screen] max-sm:w-[screen] 
         ">
-          <div className="absolute h-[full-100px] w-[1400px] m-10 backdrop-blur-[3px] bg-opacity-20 bg-blue-500 border border-slate-400 p-4 rounded-xl shadow-lg
+          <div className="absolute h-[full-100px] w-[1400px] m-10 backdrop-blur-[3px] bg-opacity-20 bg-black border border-slate-400 p-4 rounded-sm shadow-lg
          max-sm:h-[700px] max-sm:w-[380px] max-sm:flex-col  max-sm:justify-center max-sm:backdrop-blur-sm max-sm:bg-transparent max-sm:outline 
          ">
-            <button className="absolute -top-6 -right-6 backdrop-blur-sm border-slate-100 border p-2 rounded-md z-50 text-gray-200  hover:text-gray-400
+            <button className="absolute -top-6 -right-6 backdrop-blur-sm border-slate-100 border p-2 rounded-sm z-50 text-gray-200  hover:text-gray-400
   max-sm:-top-8 max-sm:right-1
   " onClick={handleClosePreview}>Close</button> {/* Close button */}
             <div className='flex h-full w-full
@@ -951,31 +993,31 @@ const Map = () => {
               <div className='flex-col h-[600px] w-[1000px] 
   max-sm:flex-col max-sm:h-[700px] max-sm:w-[350px]
   '>
-                <div className=' rounded-xl' >
+                <div className=' rounded-sm' >
                   <img
 
                     src={screenshot}
                     alt="Screenshot"
-                    className={`h-[600px] w-[1000px] rounded-xl border opacity-90 border-slate-300 ${resultImage !== null ? 'hidden' : 'block'} ${previewCanvas !== null ? 'hidden' : 'block'}
+                    className={`h-[600px] w-[1000px] rounded-sm border opacity-90 border-slate-300 ${resultImage !== null ? 'hidden' : 'block'} ${previewCanvas !== null ? 'hidden' : 'block'}
     max-sm:h-[400px] max-sm:w-[350px]
     `}
                   />
                   {!modifiedImagex && (
                   <div className={`absolute ${canvasRef.current === null ? 'hidden' : 'block'} left-4 top-4 h-[600px] w-[960px] z-30 opacity-90 `}>
-                    <canvas className={` absolute ${canvasRef.current === null ? 'hidden' : 'block'} opacity-90 rounded-xl border border-opacity-10 border-white   left-0 top-0 h-[600px] w-[960px]`} ref={canvasRef.current} />
+                    <canvas className={` absolute ${canvasRef.current === null ? 'hidden' : 'block'} opacity-90 rounded-sm border border-opacity-10 border-white   left-0 top-0 h-[600px] w-[960px]`} ref={canvasRef.current} />
                   </div>
 )}
                   {modifiedImagex &&
-                    <img className={` absolute opacity-90 left-4 top-4 z-40 h-[600px] w-[960px] rounded-xl border-2  `} src={modifiedImagex} alt='x' />
+                    <img className={` absolute opacity-90 left-4 top-4 z-40 h-[600px] w-[960px] rounded-sm border-2  `} src={modifiedImagex} alt='x' />
                   }
-                  {resultImage && <img className=' absolute opacity-90 left-4 top-4 h-[600px] w-[960px]  rounded-xl border-2 border-slate-300  
+                  {resultImage && <img className=' absolute opacity-90 left-4 top-4 h-[600px] w-[960px]  rounded-sm border-2 border-slate-300  
 max-sm:h-[400px] max-sm:w-[350px] max-sm:outline 
 ' src={resultImage} alt="Result" />}
-                  {pathImage && <img className=' absolute opacity-90 left-4 top-4 h-[600px] w-[960px] rounded-xl border-2 border-slate-300  
+                  {pathImage && <img className=' absolute opacity-90 left-4 top-4 h-[600px] w-[960px] rounded-sm border-2 border-slate-300  
 max-sm:h-[400px] max-sm:w-[350px] max-sm:outline 
 ' src={pathImage} alt="path" />}
 
-                  <div className={`absolute -bottom-10 rounded-md h-10 w-[350px] justify-center items-center backdrop:blur-sm border border-blue-200
+                  <div className={`absolute -bottom-10 rounded-sm h-10 w-[350px] justify-center items-center backdrop:blur-sm border border-blue-200
             max-sm:-bottom-14 ${resultImage !== null ? 'block' : 'hidden'}
             `}>
                     {resultImage && <div className=' flex m-2 '>
@@ -997,7 +1039,7 @@ max-sm:h-[400px] max-sm:w-[350px] max-sm:outline
                   <div className='absolute -top-6 left-4 '>
                     {imageData && (
 
-                      <div className='absolute -bottom-10 rounded-md  w-[350px]  '>
+                      <div className='absolute -bottom-10 rounded-sm  w-[350px]  '>
                         <input
                           type="range"
                           min="0"
@@ -1040,12 +1082,12 @@ max-sm:h-[400px] max-sm:w-[350px] max-sm:outline
               <div className='flex-col w-[400px] justify-center items-center m-2 
   max-sm:flex
   '>
-                {/* <button className=" h-10 w-20 justify-center text-gray-500  hover:text-gray-800 rounded-lg m-2  bg-slate-200" onClick={handlePrediction}>Predict</button> */}
+                {/* <button className=" h-10 w-20 justify-center text-gray-500  hover:text-gray-800 rounded-sm m-2  bg-slate-200" onClick={handlePrediction}>Predict</button> */}
                 <div className='flex-col text-center ml-2'>
                   {/* Assuming you have a way to set the image state */}
                   <div className='flex-col  mb-4'>
-                    <button className="flex  h-20 w-80 pt-4 justify-center font-light text-[25px] text-gray-50  hover:bg-opacity-30   hover:duration-1000 rounded-lg m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] ml-6 p-2 " onClick={handlePredict}>Predict Trees </button>
-                    <button className={`flex ml-[185px] mb-10 h-10 w-40 justify-center text-gray-50  hover:bg-opacity-30    hover:duration-1000  rounded-lg m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px]  p-2  ${resultImage != null ? 'show' : 'hidden'}`} onClick={() => { number(); setTreeCount(true); }}> Count Trees
+                    <button className="flex  h-20 w-80 pt-4 justify-center font-light text-[25px] text-gray-50  hover:bg-opacity-30   hover:duration-1000 rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] ml-6 p-2 " onClick={handlePredict}>Predict Trees </button>
+                    <button className={`flex ml-[185px] mb-10 h-10 w-40 justify-center text-gray-50  hover:bg-opacity-30    hover:duration-1000  rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px]  p-2  ${resultImage != null ? 'show' : 'hidden'}`} onClick={() => { number(); setTreeCount(true); }}> Count Trees
                       {treeCount && (
 
                         <span className={`${randomNumber === 0 ? 'hidden' : 'show'}`}>: {randomNumber} </span>
@@ -1053,11 +1095,11 @@ max-sm:h-[400px] max-sm:w-[350px] max-sm:outline
                       )}
                     </button>
                   </div>
-                  <button className="flex h-20 mb-4 w-80 pt-4 justify-center font-light text-[25px]  text-gray-50 hover:bg-opacity-30    hover:duration-1000 rounded-lg m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] ml-6 p-2 " onClick={handlePredict2}>Predict Land </button>
+                  <button className="flex h-20 mb-4 w-80 pt-4 justify-center font-light text-[25px]  text-gray-50 hover:bg-opacity-30    hover:duration-1000 rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] ml-6 p-2 " onClick={handlePredict2}>Predict Land </button>
 
                   <div className='flex-col'>
-                    <button className="flex h-20 w-80 pt-4 justify-center font-light text-[25px] text-gray-50  hover:bg-opacity-30   hover:duration-1000 rounded-lg m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] mb-4 ml-6 p-2 " onClick={() => { handleBrushing(); setPath(true); }} >Path Generation</button>
-                    <button className={`flex h-10 w-40  ml-[185px] justify-center text-gray-50  hover:bg-opacity-30  rounded-md  hover:duration-1000  bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] mb-4  p-2 ${path === true ? 'show' : 'hidden'}`} onClick={handlePath}> Generate Path </button>
+                    <button className="flex h-20 w-80 pt-4 justify-center font-light text-[25px] text-gray-50  hover:bg-opacity-30   hover:duration-1000 rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] mb-4 ml-6 p-2 " onClick={() => { handleBrushing(); setPath(true); }} >Path Generation</button>
+                    <button className={`flex h-10 w-40  ml-[185px] justify-center text-gray-50  hover:bg-opacity-30  rounded-sm  hover:duration-1000  bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] mb-4  p-2 ${path === true ? 'show' : 'hidden'}`} onClick={handlePath}> Generate Path </button>
                   </div>
 
 
