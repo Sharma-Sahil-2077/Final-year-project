@@ -2,7 +2,7 @@ from flask import Flask, request,Response, jsonify, send_file
 from ultralytics import YOLO
 import os
 import io
-from PIL import Image ,ImageDraw
+from PIL import Image ,ImageDraw,ImageFont
 from flask_cors import CORS
 import ffmpeg
 import tempfile
@@ -139,8 +139,8 @@ def find_blue_circles(image):
     return coordinates
 
 
-x = os.path.join(os.path.dirname(__file__), 'best.pt')
-y = os.path.join(os.path.dirname(__file__), 'larch.pt')
+x = os.path.join(os.path.dirname(__file__), 'best.pt') # for segementation
+y = os.path.join(os.path.dirname(__file__), 'larch.pt') # for detection
 model = YOLO(x)
 model2 = YOLO(y)
 @app.route('/')
@@ -503,7 +503,7 @@ def predict_path():
         return jsonify({'error': 'No image uploaded'}), 400
 
     # Get confidence threshold value from request
-    conf_threshold = float(request.form.get('confidence', 0.01))
+    conf_threshold = float(request.form.get('confidence', 0.1))
     try:
         # Read image data
         image_bytes = request.files['image'].read()
@@ -566,14 +566,39 @@ def predict_path():
                     draw = ImageDraw.Draw(image2)
                     for point in path:
                         draw.point(point, fill="red") 
-                
-                # buffer = cv2.imencode(".jpeg", image2)
-                image_bytes = io.BytesIO()
-                image2.save(image_bytes, format='PNG')
-                image_bytes.seek(0)
+                    
+                    image_bytes = io.BytesIO()
+                    image2.save(image_bytes, format='PNG')
+                    image_bytes.seek(0)
+                    
+                    return send_file(image_bytes, mimetype='image/png')
+                else:
+        # Create a new image or use the existing image2
+                    draw = ImageDraw.Draw(image2)
+                    text = "Path not found"
+                    font_size = 36
 
-                # Send the bytes as a file
-                return send_file(image_bytes, mimetype='image/png')
+                    try:
+                        font = ImageFont.truetype("arial.ttf", font_size)
+                    except IOError:
+                        font = ImageFont.load_default()
+
+                    # Calculate text size and position
+                    text_bbox = draw.textbbox((0, 0), text, font=font)
+                    text_width = text_bbox[2] - text_bbox[0]
+                    text_height = text_bbox[3] - text_bbox[1]
+                    
+                    width, height = image2.size
+                    text_x = (width - text_width) // 2
+                    text_y = (height - text_height) // 2
+
+                    draw.text((text_x, text_y), text, font=font, fill="red")
+                    
+                    image_bytes = io.BytesIO()
+                    image2.save(image_bytes, format='PNG')
+                    image_bytes.seek(0)
+                    
+                    return send_file(image_bytes, mimetype='image/png')
                 # # Draw the path on the image in batches
                 # for batch_index in range(0, len(batched_path), batch_size):
                 #     # Get the paths for the current batch

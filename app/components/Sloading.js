@@ -30,7 +30,7 @@ const Sloading = () => {
   }, []); // Run effect only once on component mount
 
   return (
-    <div className="relative h-[340px] w-[600px] flex items-center justify-center backdrop-blur-[7px] rounded-xl scale-105 object-contain">
+    <div className="relative h-[340px] w-[600px] flex items-center justify-center backdrop-blur-[4px] rounded-xl scale-105 object-contain">
     
       <div className="absolute w-[400px] h-1 bg-gray-100 animate-line"></div> {/* Horizontal line */}
       {dots.map(dot => (

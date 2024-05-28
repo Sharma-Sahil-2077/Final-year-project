@@ -7,9 +7,11 @@ import axios from 'axios';
 import LoadingAnimation from './loading';
 import RandomRectanglesLoading from './imageloading';
 import Sloading from './Sloading';
+import Box from './Box'
 
 const Map = () => {
   // const [counts, setCounts]
+  const [instruction ,setInstruction] = useState(true);
   const [resultImage, setResultImage] = useState(null);
   const [map, setMap] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(6); // Initial zoom level
@@ -51,6 +53,8 @@ const Map = () => {
   const [pitch , setPitch] = useState(60);
   const videoRef1 = useRef(null);
   const videoRef2 = useRef(null);
+  const [predTree, setPredTree] = useState(null);
+  const [box ,setBox] = useState(false);
 
 
   const mapStyles = [
@@ -282,11 +286,13 @@ const Map = () => {
   }
 
   const handlePredict = async () => {
-
+setModifiedImagex(null);
+      setImageData(null);
+      setPredTree(null);
+      setResultImage(null)
     setAi(true)
     try {
-      setModifiedImagex(null);
-      setImageData(null);
+      
       const byteString = atob(pngimage.split(",")[1]);
       const arrayBuffer = new ArrayBuffer(byteString.length);
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -348,11 +354,11 @@ const Map = () => {
     
     setAi(true)
 setResultImage(null)
+setPredTree(null)
     setModifiedImagex(null)
+    setPredTree(null)
 
     try {
-      setModifiedImagex(null);
-      setImageData(null);
       const byteString = atob(pngimage.split(",")[1]);
       const arrayBuffer = new ArrayBuffer(byteString.length);
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -373,7 +379,7 @@ setResultImage(null)
 
       console.log('respose', response)
       setAi(false)
-      setResultImage(URL.createObjectURL(response.data));
+      setPredTree(URL.createObjectURL(response.data));
       const response2 = await axios.post("http://localhost:5000/predict/list", formData, {
 
         headers: {
@@ -459,7 +465,7 @@ setResultImage(null)
 
 
   const handlePath = async () => {
-
+setBox(true);
     try {
 
       const byteString = atob(pngimage.split(",")[1]);
@@ -496,6 +502,7 @@ setResultImage(null)
 
 
       const imageUrl = URL.createObjectURL(response.data);
+      setBox(false);
       setPathImage(imageUrl);
       setModifiedImagex(null);
 
@@ -510,6 +517,7 @@ setResultImage(null)
     setUploadPreview(true);
   }
   const closeUploadPreview = () => {
+    setBox(false);
     setV(false)
     setVideoFile(null)
     setRvideo(null)
@@ -524,7 +532,11 @@ setResultImage(null)
     await handlePredict();
 
   };
+  const handleConfidenceChange2 = async (e) => {
+    setConfidence(e.target.value);
+    await handlePredict2();
 
+  };
 
 
   const handleBrushing = () => {
@@ -549,12 +561,12 @@ setResultImage(null)
       // Style the canvas to ensure visibility and interactivity
 
       canvas.style.position = 'absolute';
-      canvas.style.top = '7.7%';
-      canvas.style.left = '5.5%';
+      canvas.style.top = '7.5%';
+      canvas.style.left = '5.6%';
       canvas.style.zIndex = '30';
       canvas.style.border = '1px solid black';
       canvas.style.cursor = 'pointer';
-      canvas.style.borderRadius = '15px';
+      canvas.style.borderRadius = '1px';
       canvas.style.outline = '1px solid white'; // Change cursor to pointer
 
       // Append the canvas to the body (or any other container)
@@ -575,7 +587,7 @@ setResultImage(null)
       // Load the image onto the canvas
       image.onload = () => {
         console.log("Image loaded");
-        canvas.width = 958;
+        canvas.width = 960;
         canvas.height = 600;
         canvas.borderRadius = '10px';
         canvas.outline = '2px'
@@ -751,7 +763,7 @@ setResultImage(null)
   };
 
   return (
-    <div className='h-screen w-screen
+    <div className='h-screen w-screen overflow-hidden
     max-sm:h-screen max-sm:w-screen
     '>
       {/* {!start &&(
@@ -763,21 +775,44 @@ setResultImage(null)
        
         <img  className=' rounded-sm  h-40 w-40' src='../../logo.png' alt='logo' />
         
-
+        
         <div className='flex-col ml-4'>
         <span className=' text-6xl backdrop-blur-sm font-rune text-[#ffffff] '>Raven AI</span>
-        <span onClick={startAndZoom}className={`${start?'':''} flex  border-[1px] flex p-2 h-auto w-[90px] bg-blue-800 hover:bg-opacity-50 hover:duration-1000 bg-opacity-20 rounded-[3px]  z-50 mt-2 text-center cursor-pointer`}>Start App</span>
+        <span onClick={startAndZoom}className={`${start?'':''} flex  border-[1px] flex p-2 h-auto w-[90px] bg-black hover:bg-opacity-50 hover:duration-1000 bg-opacity-20 rounded-[3px]  z-50 mt-2 text-center cursor-pointer`}>Start App</span>
       </div>
 
       </div>
 )}
+{start && instruction && (
+      <div className='h-auto  w-[400px] right-1 top-28 absolute z-20 p-8 text-justify backdrop:blur-sm outline outline-black bg-black bg-opacity-30'>
+        <span className=' text-[16px] font-semibold backdrop-blur-md  text-white h-full w-full'>Instructions <span onClick={()=>setInstruction(false)} className='ml-36 cursor-pointer text-[14px] px-2 outline outline-1 '>Hide This </span></span><br></br>
+        
+        <t></t><span className='w-[350px] backdrop-blur-md text-white h-full mb-2 text-[13px]'>#<span className=' font-bold' >Zoom Level :</span> It should be between 17.50 to 18.50 for best Results </span><br></br>
+        <t></t><span className='w-[350px] backdrop-blur-md text-white h-full mb-2 text-[13px]'># <span className=' font-bold' >Take ScreenShot :</span> Click on Take ScreenShot above to Use Ai Model </span><br></br>
+        <t></t><span className='w-[350px] backdrop-blur-md text-white h-full mb-2 text-[13px]'># <span className=' font-bold' >Upload Function :</span> If you have your own Image/Video Click Upload Image or Video Above </span><br></br>
 
+
+
+        <t></t><span className='w-[350px] backdrop-blur-md text-white h-full mb-2 text-[13px]'># <span className=' font-bold' >Zoom and Pan :</span> Scroll to zoom-in zoom-out , Right click drag to Pan  </span><br></br>
+        <t></t><span className='w-[350px] backdrop-blur-md text-white h-full mb-2 text-[13px]'># <span className=' font-bold' >Zoom Level :</span> Bottom Right Shows Current Zoom Level  </span>
+
+
+      </div>
+  )}
       {loading && (
         <div className="absolute z-50 h-full w-full">
           <LoadingAnimation />
         </div>
       )}
+{box && (
+  <div className='h-full w-full'>
+          <div className='h-screen w-screen absolute top-0 left-0 backdrop-blur-sm z-40 bg'></div>
 
+        <div className="absolute  scale-105 z-50 h-full w-full left-[-150px] top-10 ">
+          <Box/>
+        </div>
+        </div>
+      )}
       {ai && (
         <div className="absolute z-50 top-16 left-[100px] h-[580px] w-[950px]">
           <RandomRectanglesLoading />
@@ -806,28 +841,28 @@ setResultImage(null)
             value={searchQuery}
             onChange={handleChange}
             placeholder="Search location..."
-            className="2xl:p-2 2xl:h-6 2xl:rounded-sm 2xl:opacity-100 text-white   bg-transparent  backdrop-blur-sm border-[1px] m-2
+            className="2xl:p-2 2xl:h-6 2xl:rounded-sm 2xl:opacity-100 text-black bg-black  bg-transparent  backdrop-blur-sm border-[1px] m-2
             max-sm:p-2 max-sm:h-10 max-sm:opacity-70 max-sm:rounded-sm
             "
           />
         </div>
-          <div className='flex  mx-44 w-[600px] justify-center backdrop-blur-5px] border bg-black  bg-opacity-40 rounded-sm'>
-            <button onClick={captureMapScreenshot} className="mt-2 backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-100 bg-opacity-10 border-zinc-200 rounded-sm m-2 p-1 px-2
-          max-sm:mt-2 max-sm:text-sm
+          <div className='flex  mx-44 w-[600px] justify-center backdrop-blur-5px] border-2 border-zinc-200 bg-blue-600  bg-opacity-10 rounded-sm'>
+            <button onClick={captureMapScreenshot} className="mt-2 backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 border-zinc-200 bg-blue-600 bg-opacity-10  rounded-sm m-2 p-1 px-2
+          max-sm:mt-2 max-sm:text-sm 
           ">Take Screenshot</button> {/* Button to capture screenshot */}
             <span className='text-white mt-4 '>Or</span>
-            <button onClick={handleuploadPreview} className="mt-2 backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 bg-blue-50 bg-opacity-10 border-blue-50  rounded-sm m-2 p-1 px-2
+            <button onClick={handleuploadPreview} className="mt-2 backdrop-blur-sm justify-center border hover:bg-transparent hover:bg-black hover:bg-opacity-20 hover:duration-500 border-zinc-200 bg-blue-600  bg-opacity-10 rounded-sm m-2 p-1 px-2
           max-sm:mt-2 max-sm:text-sm
           ">Upload Image or Video</button> {/* Button to Upload Picture */}
           </div>
-          <div className="absolute top-10 left-5 mt-2 opacity-80 text-black border-[1px] rounded-sm
+          <div className="absolute top-10 left-5 mt-2 backdrop:blur-sm opacity-80 text-black border-[1px] rounded-sm
           max-sm:text-sm">
             {searchResults.map((result, index) => (
-              <div key={index} onClick={() => handleResultClick(result)} className=" text-white cursor-pointer hover:bg-opacity-0 px-3 py-2 border-b backdrop-blur-sm bg-white bg-opacity-10 outline-[1px]">{result.place_name}</div>
+              <div key={index} onClick={() => handleResultClick(result)} className=" text-white cursor-pointer  hover:bg-opacity-0 px-3 py-2 border-b backdrop-blur-lg bg-black bg-opacity-40 outline-[1px]">{result.place_name}</div>
             ))}
           </div>
         </div>
-        <div className={` absolute  ${start === true?' duration-1000 opacity-100':'opacity-0 duration-0'} bottom-0 left-0 2xl:text-2xl bg-blue-800 bg-opacity-20 outline outline-1 backdrop-blur-sm p-2 rounded shadow-md text-white z-20
+        <div className={` absolute  ${start === true?' duration-1000 opacity-100':'opacity-0 duration-0'} bottom-0 m-2 left-0 2xl:text-2xl bg-black bg-opacity-20 outline outline-1 backdrop-blur-sm p-2  shadow-md text-white z-20
         max-sm:text-sm max-sm:h-9
         `}>
           <span className='shadow-xl'> Zoom Level: {zoomLevel.toFixed(2)}</span>
@@ -981,10 +1016,11 @@ setResultImage(null)
         <div className="absolute justify-center top-[0%] left-[0%] snap-center w-full h-full flex  bg-gray-900 bg-opacity-75 z-20
         max-sm:h-[screen] max-sm:w-[screen] 
         ">
-          <div className="absolute h-[full-100px] w-[1400px] m-10 backdrop-blur-[3px] bg-opacity-20 bg-black border border-slate-400 p-4 rounded-sm shadow-lg
-         max-sm:h-[700px] max-sm:w-[380px] max-sm:flex-col  max-sm:justify-center max-sm:backdrop-blur-sm max-sm:bg-transparent max-sm:outline 
+          <div className="absolute h-[full-100px] w-[1400px] m-10  bg-blue-600  bg-opacity-10  border border-zinc-200  p-4 rounded-sm shadow-lg
+         max-sm:h-[700px] max-sm:w-[380px] max-sm:flex-col  max-sm:justify-center max-sm:backdrop-blur-sm max-sm:bg-transparent max-sm:outline
          ">
-            <button className="absolute -top-6 -right-6 backdrop-blur-sm border-slate-100 border p-2 rounded-sm z-50 text-gray-200  hover:text-gray-400
+          {/* <div className='h-full w-80 absolute z-50 left-[50%] top-[50%] bg-[url("X:\Projects\tree-sense\nextjs-flask\public\des.png")] ' ></div> */}
+            <button className="absolute -top-6 z-50 -right-6 backdrop-blur-sm border-zinc-200 border p-2 rounded-sm text-gray-200  hover:text-gray-400
   max-sm:-top-8 max-sm:right-1
   " onClick={handleClosePreview}>Close</button> {/* Close button */}
             <div className='flex h-full w-full
@@ -998,29 +1034,34 @@ setResultImage(null)
 
                     src={screenshot}
                     alt="Screenshot"
-                    className={`h-[600px] w-[1000px] rounded-sm border opacity-90 border-slate-300 ${resultImage !== null ? 'hidden' : 'block'} ${previewCanvas !== null ? 'hidden' : 'block'}
+                    className={`h-[600px] w-[1000px] rounded-sm border-2 shadow-lg shadow-blue-950 opacity-90 border-zinc-200 ${resultImage !== null ? 'hidden' : 'block'} ${previewCanvas !== null ? 'hidden' : 'block'}
     max-sm:h-[400px] max-sm:w-[350px]
     `}
                   />
                   {!modifiedImagex && (
-                  <div className={`absolute ${canvasRef.current === null ? 'hidden' : 'block'} left-4 top-4 h-[600px] w-[960px] z-30 opacity-90 `}>
-                    <canvas className={` absolute ${canvasRef.current === null ? 'hidden' : 'block'} opacity-90 rounded-sm border border-opacity-10 border-white   left-0 top-0 h-[600px] w-[960px]`} ref={canvasRef.current} />
+                  <div className={`absolute ${canvasRef.current === null ? 'hidden' : 'block'} left-5 top-10 h-[600px] w-[960px] z-30 opacity-90 `}>
+                    <canvas className={` absolute ${canvasRef.current === null ? 'hidden' : 'block'} opacity-90 rounded-sm border border-opacity-10 border-zinc-200   left-5 top-10 h-[600px] w-[960px]`} ref={canvasRef.current} />
                   </div>
 )}
                   {modifiedImagex &&
-                    <img className={` absolute opacity-90 left-4 top-4 z-40 h-[600px] w-[960px] rounded-sm border-2  `} src={modifiedImagex} alt='x' />
+                    <img className={` absolute opacity-90 left-[15px] top-4 z-40 h-[600px] w-[965px] rounded-sm border-2 border-zinc-200  `} src={modifiedImagex} alt='x' />
                   }
-                  {resultImage && <img className=' absolute opacity-90 left-4 top-4 h-[600px] w-[960px]  rounded-sm border-2 border-slate-300  
+                  {resultImage && <img className=' absolute opacity-90 left-5 top-5 h-[600px] w-[960px]  rounded-sm border-2 border-zinc-200  
 max-sm:h-[400px] max-sm:w-[350px] max-sm:outline 
 ' src={resultImage} alt="Result" />}
-                  {pathImage && <img className=' absolute opacity-90 left-4 top-4 h-[600px] w-[960px] rounded-sm border-2 border-slate-300  
+
+        {predTree && <img className=' absolute opacity-90 left-4 top-4 h-[600px] w-[964px]  rounded-sm border-2 border-zinc-200  
+        max-sm:h-[400px] max-sm:w-[350px] max-sm:outline 
+        ' src={predTree} alt="Result" />}
+
+                  {pathImage && <img className=' absolute opacity-90 left-4 top-4 h-[600px] w-[965px] rounded-sm border-2 border-zinc-200  
 max-sm:h-[400px] max-sm:w-[350px] max-sm:outline 
 ' src={pathImage} alt="path" />}
 
-                  <div className={`absolute -bottom-10 rounded-sm h-10 w-[350px] justify-center items-center backdrop:blur-sm border border-blue-200
-            max-sm:-bottom-14 ${resultImage !== null ? 'block' : 'hidden'}
+                {resultImage &&  (<div className={`absolute -bottom-10 rounded-sm h-10 w-[380px] justify-center items-center backdrop:blur-sm border border-zinc-200
+            max-sm:-bottom-14 
             `}>
-                    {resultImage && <div className=' flex m-2 '>
+                     <div className=' flex m-2 '>
                       <input
                         className=' backdrop-blur-md
              max-sm:
@@ -1033,8 +1074,29 @@ max-sm:h-[400px] max-sm:w-[350px] max-sm:outline
                         onChange={handleConfidenceChange}
                       />
 
-                      <span className='ml-2'>   {confidence}    Confidence Level</span> </div>}
+                      <span className='ml-2 '>   {confidence}    Confidence Level Tree</span> </div>
                   </div>
+                  )}
+                  
+                  {predTree &&  (<div className={`absolute -bottom-10 rounded-sm h-10 w-[380px] justify-center items-center backdrop:blur-sm border border-zinc-200
+            max-sm:-bottom-14 
+            `}>
+                     <div className=' flex m-2 '>
+                      <input
+                        className=' backdrop-blur-md
+             max-sm:
+             '
+                        type="range"
+                        min="0.01"
+                        max="1"
+                        step="0.01"
+                        value={confidence}
+                        onChange={handleConfidenceChange}
+                      />
+
+                      <span className='ml-2'>   {confidence}    Confidence Level Land</span> </div>
+                  </div>
+                  )}
 
                   <div className='absolute -top-6 left-4 '>
                     {imageData && (
@@ -1086,8 +1148,8 @@ max-sm:h-[400px] max-sm:w-[350px] max-sm:outline
                 <div className='flex-col text-center ml-2'>
                   {/* Assuming you have a way to set the image state */}
                   <div className='flex-col  mb-4'>
-                    <button className="flex  h-20 w-80 pt-4 justify-center font-light text-[25px] text-gray-50  hover:bg-opacity-30   hover:duration-1000 rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] ml-6 p-2 " onClick={handlePredict}>Predict Trees </button>
-                    <button className={`flex ml-[185px] mb-10 h-10 w-40 justify-center text-gray-50  hover:bg-opacity-30    hover:duration-1000  rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px]  p-2  ${resultImage != null ? 'show' : 'hidden'}`} onClick={() => { number(); setTreeCount(true); }}> Count Trees
+                    <button className="flex  h-20 w-80 pt-4 justify-center font-light text-[25px] text-gray-50  hover:bg-opacity-30   hover:duration-1000 rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] border-zinc-200 shadow-xl shadow-blue-950 ml-6 p-2 " onClick={handlePredict}>Predict Trees </button>
+                    <button className={`flex ml-[185px] mb-10 h-10 w-40 justify-center text-gray-50  hover:bg-opacity-30    hover:duration-1000  rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] border-zinc-200 shadow-xl shadow-blue-950   p-2  ${resultImage != null ? 'show' : 'hidden'}`} onClick={() => { number(); setTreeCount(true); }}> Count Trees
                       {treeCount && (
 
                         <span className={`${randomNumber === 0 ? 'hidden' : 'show'}`}>: {randomNumber} </span>
@@ -1099,8 +1161,10 @@ max-sm:h-[400px] max-sm:w-[350px] max-sm:outline
 
                   <div className='flex-col'>
                     <button className="flex h-20 w-80 pt-4 justify-center font-light text-[25px] text-gray-50  hover:bg-opacity-30   hover:duration-1000 rounded-sm m-2 bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] mb-4 ml-6 p-2 " onClick={() => { handleBrushing(); setPath(true); }} >Path Generation</button>
+                    {clickCounter.current >= 2 && (
                     <button className={`flex h-10 w-40  ml-[185px] justify-center text-gray-50  hover:bg-opacity-30  rounded-sm  hover:duration-1000  bg-slate-800 bg-opacity-20  backdrop-blur-sm border-[1px] mb-4  p-2 ${path === true ? 'show' : 'hidden'}`} onClick={handlePath}> Generate Path </button>
-                  </div>
+                    )}
+                    </div>
 
 
 

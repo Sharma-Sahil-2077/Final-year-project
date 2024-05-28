@@ -1,0 +1,26 @@
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(20, 40px);
+    grid-template-rows: repeat(20, 40px);
+    margin: auto;
+    padding: 40px;
+    overflow: hidden;
+    width: 1000px;
+    height: 600px;
+  }
+  
+  .grid-row {
+    display: contents;
+  }
+  
+  .grid-box {
+    width: 30px;
+    height: 30px;
+    margin: 0px;
+    background-color: rgba(0, 0, 0, 0.182);
+    backdrop-filter:invert(80%);
+    border: 1px solid black;
+    box-sizing: border-box;
+    transition: transform 0.3s ease-in-out;
+  }
+  
