@@ -25,8 +25,7 @@ In production, the Flask server is hosted as [Python serverless functions](https
 
 ## Demo
 
-ravenai.vercel.app
-
+https://ravenai.vercel.app/
 
 ## Deploy Your Own
 
